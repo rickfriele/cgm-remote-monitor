@@ -113,9 +113,50 @@ describe('COB', function ( ) {
 
     cob.alexa.intentHandlers[0].intentHandler(function next(title, response) {
       title.should.equal('Current COB');
-      response.should.equal('You have 8 carbohydrates on board');
+      response.should.equal('You have 8.00 carbohydrates on board');
       done();
     }, [], sbx);
+
+  });
+
+  it('should handle Google Home requests', function (done) {
+    var data = {
+      treatments: [{
+        carbs: '8'
+        , 'mills': Date.now() - 60000 //1m ago
+      }]
+      , profile: profile
+    };
+
+    var sandbox = require('../lib/sandbox')();
+    var sbx = sandbox.clientInit(ctx, Date.now(), data);
+    cob.setProperties(sbx);
+
+    cob.googleHome.intentHandlers.length.should.equal(1);
+
+    var req = {
+      "result": {
+        "source": "agent",
+        "resolvedQuery": "How many carbs do I have on board?",
+        "action": "",
+        "actionIncomplete": false,
+        "parameters": {
+          "metric": "carbs"
+        },
+        "contexts": [],
+        "metadata": {
+          "intentId": "23e5db40-96b2-42f5-aa02-edc766706ca6",
+          "webhookUsed": "false",
+          "webhookForSlotFillingUsed": "false",
+          "intentName": "CurrentMetric"
+        }
+      }
+    };
+
+    cob.googleHome.intentHandlers[0].intentHandler(req, function next(response) {
+      response.should.equal('You have 8.00 carbohydrates on board');
+      done();
+    }, sbx);
 
   });
 
@@ -190,6 +231,5 @@ describe('COB', function ( ) {
     });
 
   });
-
 
 });
